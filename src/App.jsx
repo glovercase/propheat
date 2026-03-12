@@ -818,6 +818,84 @@ function MapLegend({ layerVisibility, onToggle }) {
   )
 }
 
+// ── Feedback button + modal ───────────────────────────────────────
+const TALLY_EMBED_URL = 'https://tally.so/r/MeOx80'
+
+function FeedbackButton() {
+  const [open, setOpen] = useState(false)
+
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return
+    const handler = e => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [open])
+
+  return (
+    <>
+      {/* Floating pill button */}
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed bottom-5 right-5 z-[1100] flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-100 transition-all duration-200"
+        style={{ background: 'linear-gradient(135deg, #1e40af 0%, #4f46e5 100%)' }}
+      >
+        Give Feedback 💬
+      </button>
+
+      {/* Modal backdrop */}
+      {open && (
+        <div
+          className="fixed inset-0 z-[1200] flex items-center justify-center p-4"
+          style={{ background: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(4px)' }}
+          onClick={e => { if (e.target === e.currentTarget) setOpen(false) }}
+        >
+          {/* Modal panel */}
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden border border-slate-200"
+            style={{ maxHeight: '90vh' }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-sm text-white shrink-0"
+                  style={{ background: 'linear-gradient(135deg, #1e40af 0%, #4f46e5 100%)' }}
+                >
+                  💬
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-slate-800 leading-none">Share your feedback</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">Help us improve PropHeat NZ</div>
+                </div>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                aria-label="Close"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Tally iframe */}
+            <div className="flex-1 min-h-0">
+              <iframe
+                src={TALLY_EMBED_URL}
+                title="Feedback form"
+                className="w-full h-full border-0"
+                style={{ minHeight: '480px' }}
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 // ═════════════════════════════════════════════════════════════════
 // MAIN APP
 // ═════════════════════════════════════════════════════════════════
@@ -1105,6 +1183,8 @@ export default function App() {
           />
         </div>
       </div>
+
+      <FeedbackButton />
     </div>
   )
 }
