@@ -137,6 +137,7 @@ const INITIAL_FILTERS = {
   maxDaysOnMarket:      90,
   minPageViews:          0,
   minWatchlistCount:     0,
+  minHeatScore:         80,
   selectedSuburbs:      [],
   selectedCities:       [],
   maxEstimatedValue:    700_000,
@@ -266,7 +267,14 @@ function generateProperties() {
     const isLand   = propType === 'land'
     const isSold   = rand() > 0.38
     const dom      = isSold ? ri(1, 90) : null
-    const price    = isSold ? round1k(rf(350_000, 1_500_000)) : round1k(rf(350_000, 2_500_000))
+    const bedsRoll = rand()
+    const beds     = isLand ? 0 : bedsRoll < 0.07 ? 1 : bedsRoll < 0.37 ? 2 : bedsRoll < 0.82 ? 3 : bedsRoll < 0.97 ? 4 : 5
+    const baths    = isLand ? 0 : beds === 1 ? 1 : beds === 2 ? ri(1, 2) : ri(2, 3)
+    const price    = isLand
+      ? round1k(rf(150_000, 600_000))
+      : isSold
+        ? round1k(beds <= 2 ? rf(350_000, 799_000) : beds === 3 ? rf(800_000, 1_199_000) : beds === 4 ? rf(1_000_000, 1_500_000) : rf(1_200_000, 1_500_000))
+        : round1k(beds <= 2 ? rf(350_000, 799_000) : beds === 3 ? rf(800_000, 1_499_000) : beds === 4 ? rf(1_000_000, 1_800_000) : rf(1_200_000, 2_500_000))
     const land     = isSold ? ri(50, 250)  : ri(300, 2500)
     const floor    = isLand ? 0 : isSold ? ri(60, 150) : ri(80, 380)
     const rawLat   = suburb.lat + (rand() - 0.5) * 0.028
@@ -277,8 +285,8 @@ function generateProperties() {
       suburb: suburb.name,
       lat: clamp(rawLat, suburb.minLat, suburb.maxLat),
       lng: clamp(rawLng, suburb.minLng, suburb.maxLng),
-      bedrooms:  isLand ? 0 : ri(1, 6),
-      bathrooms: isLand ? 0 : ri(1, 4),
+      bedrooms:  beds,
+      bathrooms: baths,
       garage: rand() > 0.35,
       landSizeSqm:  land,
       floorSizeSqm: floor,
@@ -313,7 +321,12 @@ function generateProperties() {
     const isApt    = propType === 'apartment'
     const isSold   = rand() > 0.38
     const dom      = isSold ? ri(1, 90) : null
-    const price    = round1k(rf(600_000, 5_000_000))
+    const bedsRoll = rand()
+    const beds     = isLand ? 0 : bedsRoll < 0.07 ? 1 : bedsRoll < 0.37 ? 2 : bedsRoll < 0.82 ? 3 : bedsRoll < 0.97 ? 4 : 5
+    const baths    = isLand ? 0 : beds === 1 ? 1 : beds === 2 ? ri(1, 2) : ri(2, 3)
+    const price    = isLand
+      ? round1k(rf(300_000, 1_500_000))
+      : round1k(beds <= 1 ? rf(600_000, 800_000) : beds === 2 ? rf(700_000, 1_499_000) : beds === 3 ? rf(1_500_000, 2_999_000) : beds === 4 ? rf(2_000_000, 4_000_000) : rf(3_000_000, 5_000_000))
     const land     = isApt ? ri(0, 100) : isSold ? ri(50, 250) : ri(200, 2000)
     const floor    = isLand ? 0 : isApt ? ri(40, 120) : isSold ? ri(60, 150) : ri(80, 380)
     const rawLat   = suburb.lat + (rand() - 0.5) * 0.018
@@ -324,8 +337,8 @@ function generateProperties() {
       suburb: suburb.name,
       lat: clamp(rawLat, suburb.minLat, suburb.maxLat),
       lng: clamp(rawLng, suburb.minLng, suburb.maxLng),
-      bedrooms:  isLand ? 0 : ri(1, 5),
-      bathrooms: isLand ? 0 : ri(1, 3),
+      bedrooms:  beds,
+      bathrooms: baths,
       garage: isApt ? rand() > 0.65 : rand() > 0.25,
       landSizeSqm:  land,
       floorSizeSqm: floor,
@@ -350,6 +363,17 @@ function generateProperties() {
       region: 'queenstown-lakes',
       city:   suburb.city,
     })
+  }
+
+  // ── Fixup: ensure every non-land property has valid bed/bath counts
+  for (const p of props) {
+    if (p.propertyType === 'land') continue
+    if (!p.bedrooms || p.bedrooms < 1) {
+      p.bedrooms = bedsFromPrice(p.estimatedValueNZD, p.region)
+    }
+    if (!p.bathrooms || p.bathrooms < 1) {
+      p.bathrooms = p.bedrooms <= 2 ? 1 : 2
+    }
   }
 
   return props
@@ -610,6 +634,10 @@ function FilterSidebar({ filters, onChange, open, onToggle, availableCities, ava
             </div>
             <div className="flex flex-col gap-4">
               <RangeSlider
+                label="Min heat score" min={0} max={100} step={5} value={filters.minHeatScore}
+                format={v => `${v}+`} onChange={set('minHeatScore')} variant="hot"
+              />
+              <RangeSlider
                 label="Max days on market" min={1} max={90} value={filters.maxDaysOnMarket}
                 format={v => `${v}d`} onChange={set('maxDaysOnMarket')} variant="hot"
               />
@@ -715,9 +743,18 @@ function HeatBadge({ score }) {
 }
 
 // ── Property card ─────────────────────────────────────────────────
+function bedsFromPrice(price, region) {
+  if (region === 'queenstown-lakes') {
+    return price >= 3_000_000 ? 4 : price >= 1_500_000 ? 3 : price >= 800_000 ? 2 : 2
+  }
+  return price >= 1_200_000 ? 4 : price >= 800_000 ? 3 : 2
+}
+
 function PropertyCard({ prop, onViewOnMap, isBargain }) {
   const price      = prop.soldPriceNZD ?? prop.estimatedValueNZD
   const priceLabel = prop.soldPriceNZD ? 'Sold' : 'Est.'
+  const displayBeds  = prop.bedrooms  || bedsFromPrice(price, prop.region)
+  const displayBaths = prop.bathrooms || (displayBeds <= 2 ? 1 : 2)
   return (
     <div className="bg-white rounded-xl p-3.5 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 shadow-sm">
       <div className="flex justify-between items-start gap-2 mb-1.5">
@@ -766,11 +803,9 @@ function PropertyCard({ prop, onViewOnMap, isBargain }) {
         </div>
       )}
       <div className="flex flex-wrap gap-x-2.5 gap-y-1 text-[11px] text-slate-500 mb-3">
-        {prop.bedrooms > 0 && (
-          <span className="flex items-center gap-1">
-            <span className="text-slate-300">🛏</span>{prop.bedrooms}bd/{prop.bathrooms}ba
-          </span>
-        )}
+        <span className="flex items-center gap-1 font-semibold text-slate-700">
+          {displayBeds} bed · {displayBaths} bath
+        </span>
         <span className="flex items-center gap-1">
           <span className="text-slate-300">📐</span>{prop.landSizeSqm.toLocaleString()}m²
         </span>
@@ -802,7 +837,7 @@ function PropertyCard({ prop, onViewOnMap, isBargain }) {
 }
 
 // ── Property list sidebar (RIGHT) ─────────────────────────────────
-function Sidebar({ hotProperties, bargains, onViewOnMap, activeTab, onTabChange, bargainIds }) {
+function Sidebar({ hotProperties, bargains, onViewOnMap, activeTab, onTabChange, bargainIds, minHeatScore }) {
   const items = activeTab === 'hot' ? hotProperties : bargains
   const tabs = [
     { id: 'hot',      label: '🔥 Hot',     count: hotProperties.length, activeColor: '#ea580c', activeBg: '#fff7ed' },
@@ -827,12 +862,20 @@ function Sidebar({ hotProperties, bargains, onViewOnMap, activeTab, onTabChange,
           </button>
         ))}
       </div>
+      {activeTab === 'hot' && (
+        <div className="flex items-center gap-1.5 px-3 py-2 border-b border-slate-100 bg-orange-50/60 shrink-0">
+          <span className="text-[10px] text-slate-400 font-medium">🔥 Hot Property Score</span>
+          <span className="text-[10px] font-bold text-orange-600 bg-orange-100 border border-orange-200 px-1.5 py-0.5 rounded-full">
+            {minHeatScore}+
+          </span>
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 bg-slate-50/60">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-36 text-slate-400 text-sm text-center px-4">
             <span className="text-3xl mb-2 opacity-40">🔍</span>
             {activeTab === 'hot'
-              ? 'No recent sales in this area in the last 3 months'
+              ? `No properties match a heat score of ${minHeatScore}+, try lowering the threshold`
               : 'No properties match the current filters'}
           </div>
         ) : (
@@ -1111,6 +1154,7 @@ export default function App() {
     return [...filteredProperties]
       .filter(p => {
         if (!p.dateSold) return false
+        if (p.heatScore < filters.minHeatScore) return false
         const [y, m, d] = p.dateSold.split('-').map(Number)
         return Date.UTC(y, m - 1, d) >= cutoff
       })
@@ -1120,7 +1164,7 @@ export default function App() {
         return Date.UTC(by, bm - 1, bd) - Date.UTC(ay, am - 1, ad)
       })
       .slice(0, 20)
-  }, [filteredProperties])
+  }, [filteredProperties, filters.minHeatScore])
 
   const stats = useMemo(() => {
     const hotCount = filteredProperties.filter(p => p.heatScore >= 60).length
@@ -1187,7 +1231,7 @@ export default function App() {
     layer.clearLayers()
     markersById.current.clear()
     if (!layerVisibility.properties) return
-    for (const prop of filteredProperties) {
+    for (const prop of filteredProperties.filter(p => p.heatScore >= filters.minHeatScore)) {
       const color = heatColor(prop.heatScore)
       const icon  = L.divIcon({
         className: '',
@@ -1199,7 +1243,7 @@ export default function App() {
       layer.addLayer(marker)
       markersById.current.set(prop.id, marker)
     }
-  }, [filteredProperties, layerVisibility.properties])
+  }, [filteredProperties, layerVisibility.properties, filters.minHeatScore])
 
   // ── Bargain star markers ──────────────────────────────────────
 
@@ -1299,6 +1343,7 @@ export default function App() {
             activeTab={activeTab}
             onTabChange={setActiveTab}
             bargainIds={bargainIds}
+            minHeatScore={filters.minHeatScore}
           />
         </div>
       </div>
