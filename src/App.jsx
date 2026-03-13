@@ -117,6 +117,19 @@ const QT_PROP_TYPE_CDF   = [0.30, 0.45, 0.62, 0.78, 1.00]
 const QT_PROP_TYPE_MAP   = ['residential', 'apartment', 'new build', 'lifestyle', 'land']
 
 // ─────────────────────────────────────────────────────────────────
+// DEVELOPERS
+// ─────────────────────────────────────────────────────────────────
+
+const CHCH_DEVELOPERS = [
+  'M Group', 'Wolfbrook', 'Vale', 'Four Avenues', 'Growcott Freer',
+  'Brooksfield', 'Boutique Living', 'Tao Homes', 'Williams Corp', 'Oxford',
+]
+const QT_DEVELOPERS = ['Wolfbrook', 'RCL Homestead Bay', 'Falconer', 'Woodlot', 'Kawarau']
+
+// Reference date for mock data — all sold dates are relative to this
+const DATA_REF_MS = Date.UTC(2026, 2, 14) // 2026-03-14
+
+// ─────────────────────────────────────────────────────────────────
 // INITIAL FILTERS  (Christchurch defaults — reset on region change)
 // ─────────────────────────────────────────────────────────────────
 
@@ -160,6 +173,31 @@ function fmtNZD(v) {
   return `$${Math.round(v / 1000)}k`
 }
 
+function fmtDate(dateStr) {
+  if (!dateStr) return null
+  const [y, m, d] = dateStr.split('-')
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  return `${parseInt(d, 10)} ${months[parseInt(m, 10) - 1]} ${y}`
+}
+
+function fmtRelativeTime(dateStr) {
+  if (!dateStr) return null
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const diffDays = Math.round((DATA_REF_MS - Date.UTC(y, m - 1, d)) / 86_400_000)
+  if (diffDays <= 0)  return 'Today'
+  if (diffDays === 1) return '1 day ago'
+  if (diffDays < 7)   return `${diffDays} days ago`
+  if (diffDays < 14)  return '1 week ago'
+  if (diffDays < 30)  return `${Math.floor(diffDays / 7)} weeks ago`
+  if (diffDays < 60)  return '1 month ago'
+  return `${Math.floor(diffDays / 30)} months ago`
+}
+
+function genSoldDate(daysAgo) {
+  const d = new Date(DATA_REF_MS - daysAgo * 86_400_000)
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+}
+
 function heatColor(score) {
   if (score >= 80) return '#dc2626'
   if (score >= 65) return '#ea580c'
@@ -198,11 +236,13 @@ function generateProperties() {
     id: 'demo-1', address: '45 High Street', suburb: 'Addington',
     lat: -43.5440, lng: 172.6130,
     bedrooms: 3, bathrooms: 2, garage: true,
-    landSizeSqm: 650, floorSizeSqm: 180, propertyType: 'residential',
-    estimatedValueNZD: 1_300_000, soldPriceNZD: 1_300_000, dateSold: '2024-02-15',
+    landSizeSqm: 210, floorSizeSqm: 145, propertyType: 'residential',
+    estimatedValueNZD: 1_300_000, soldPriceNZD: 1_300_000, dateSold: genSoldDate(22),
     daysOnMarket: 3, pageViews: 3200, watchlistCount: 145,
     yearBuilt: 1985, schoolZone: 'Cashmere High',
     nearPublicTransport: true, nearPark: true, distanceToCityCentreKm: 2.1,
+    rvNZD: 1_105_000, lastSoldPriceNZD: 640_000, lastSoldYear: 2014,
+    developer: 'Williams Corp',
     region: 'christchurch', city: 'Christchurch',
   })
   props.push({
@@ -214,6 +254,8 @@ function generateProperties() {
     daysOnMarket: null, pageViews: 890, watchlistCount: 42,
     yearBuilt: 1923, schoolZone: 'Cashmere High',
     nearPublicTransport: true, nearPark: false, distanceToCityCentreKm: 2.2,
+    rvNZD: 595_000, lastSoldPriceNZD: 300_000, lastSoldYear: 2008,
+    developer: null,
     region: 'christchurch', city: 'Christchurch',
   })
 
@@ -225,8 +267,8 @@ function generateProperties() {
     const isSold   = rand() > 0.38
     const dom      = isSold ? ri(1, 90) : null
     const price    = round1k(rf(350_000, 2_500_000))
-    const land     = ri(300, 2500)
-    const floor    = isLand ? 0 : ri(80, 380)
+    const land     = isSold ? ri(50, 250)  : ri(300, 2500)
+    const floor    = isLand ? 0 : isSold ? ri(60, 150) : ri(80, 380)
     const rawLat   = suburb.lat + (rand() - 0.5) * 0.028
     const rawLng   = suburb.lng + (rand() - 0.5) * 0.030
     props.push({
@@ -243,9 +285,7 @@ function generateProperties() {
       propertyType: propType,
       estimatedValueNZD: price,
       soldPriceNZD: isSold ? round1k(price * rf(0.87, 1.13)) : null,
-      dateSold: isSold
-        ? `${ri(2020, 2024)}-${String(ri(1, 12)).padStart(2, '0')}-${String(ri(1, 28)).padStart(2, '0')}`
-        : null,
+      dateSold:     isSold ? genSoldDate(ri(0, 89)) : null,
       daysOnMarket:   dom,
       pageViews:      ri(30, 5000),
       watchlistCount: ri(0, 200),
@@ -256,6 +296,10 @@ function generateProperties() {
       distanceToCityCentreKm: parseFloat(
         (haversineKm(suburb.lat, suburb.lng, -43.5321, 172.6362) * rf(0.85, 1.15)).toFixed(1),
       ),
+      rvNZD:            round1k(price * rf(0.80, 0.90)),
+      lastSoldPriceNZD: round1k(price * rf(0.35, 0.60)),
+      lastSoldYear:     ri(2008, 2018),
+      developer:        isSold ? pick(CHCH_DEVELOPERS) : null,
       region: 'christchurch',
       city:   'Christchurch',
     })
@@ -270,8 +314,8 @@ function generateProperties() {
     const isSold   = rand() > 0.38
     const dom      = isSold ? ri(1, 90) : null
     const price    = round1k(rf(600_000, 5_000_000))
-    const land     = isApt ? ri(0, 100) : ri(200, 2000)
-    const floor    = isLand ? 0 : isApt ? ri(40, 120) : ri(80, 380)
+    const land     = isApt ? ri(0, 100) : isSold ? ri(50, 250) : ri(200, 2000)
+    const floor    = isLand ? 0 : isApt ? ri(40, 120) : isSold ? ri(60, 150) : ri(80, 380)
     const rawLat   = suburb.lat + (rand() - 0.5) * 0.018
     const rawLng   = suburb.lng + (rand() - 0.5) * 0.018
     props.push({
@@ -288,9 +332,7 @@ function generateProperties() {
       propertyType: propType,
       estimatedValueNZD: price,
       soldPriceNZD: isSold ? round1k(price * rf(0.90, 1.15)) : null,
-      dateSold: isSold
-        ? `${ri(2020, 2024)}-${String(ri(1, 12)).padStart(2, '0')}-${String(ri(1, 28)).padStart(2, '0')}`
-        : null,
+      dateSold:     isSold ? genSoldDate(ri(0, 89)) : null,
       daysOnMarket:   dom,
       pageViews:      ri(50, 5000),
       watchlistCount: ri(0, 200),
@@ -301,6 +343,10 @@ function generateProperties() {
       distanceToCityCentreKm: parseFloat(
         (haversineKm(suburb.lat, suburb.lng, -45.0312, 168.6626) * rf(0.85, 1.15)).toFixed(1),
       ),
+      rvNZD:            round1k(price * rf(0.80, 0.90)),
+      lastSoldPriceNZD: round1k(price * rf(0.35, 0.60)),
+      lastSoldYear:     ri(2008, 2018),
+      developer:        isSold ? pick(QT_DEVELOPERS) : null,
       region: 'queenstown-lakes',
       city:   suburb.city,
     })
@@ -679,16 +725,46 @@ function PropertyCard({ prop, onViewOnMap, isBargain }) {
           <div className="text-sm font-semibold text-slate-800 truncate">{prop.address}</div>
           <div className="text-[11px] text-slate-400 mt-0.5">{prop.suburb} · {prop.city} · {prop.propertyType}</div>
         </div>
-        {isBargain && (
-          <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full whitespace-nowrap shrink-0">
-            💰 Bargain
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          {prop.developer && (
+            <span className="text-[10px] text-slate-400 whitespace-nowrap">{prop.developer}</span>
+          )}
+          {isBargain && (
+            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+              💰 Bargain
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 mb-2.5">
+        <span className="font-bold text-blue-700 text-base">{fmtNZD(price)}</span>
+        <span className="text-[10px] text-slate-400 font-medium">{priceLabel}</span>
+        {prop.soldPriceNZD && prop.dateSold && (
+          <span className="text-[10px] text-slate-400">· Sold {fmtDate(prop.dateSold)}</span>
+        )}
+        {prop.dateSold && (
+          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-100">
+            {fmtRelativeTime(prop.dateSold)}
           </span>
         )}
       </div>
-      <div className="flex items-baseline gap-1.5 mb-2.5">
-        <span className="font-bold text-blue-700 text-base">{fmtNZD(price)}</span>
-        <span className="text-[10px] text-slate-400 font-medium">{priceLabel}</span>
-      </div>
+
+      {/* Bargain pricing detail row */}
+      {isBargain && (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-slate-400 mb-2.5 -mt-1">
+          {prop.rvNZD && (
+            <span>RV <span className="font-semibold text-slate-600">{fmtNZD(prop.rvNZD)}</span></span>
+          )}
+          {prop.rvNZD && <span className="text-slate-200">·</span>}
+          <span>Est. <span className="font-semibold text-slate-600">{fmtNZD(prop.estimatedValueNZD)}</span></span>
+          {prop.lastSoldPriceNZD && (
+            <>
+              <span className="text-slate-200">·</span>
+              <span>Last Sold ({prop.lastSoldYear}) <span className="font-semibold text-slate-600">{fmtNZD(prop.lastSoldPriceNZD)}</span></span>
+            </>
+          )}
+        </div>
+      )}
       <div className="flex flex-wrap gap-x-2.5 gap-y-1 text-[11px] text-slate-500 mb-3">
         {prop.bedrooms > 0 && (
           <span className="flex items-center gap-1">
@@ -753,9 +829,11 @@ function Sidebar({ hotProperties, bargains, onViewOnMap, activeTab, onTabChange,
       </div>
       <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 bg-slate-50/60">
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-36 text-slate-400 text-sm text-center">
+          <div className="flex flex-col items-center justify-center h-36 text-slate-400 text-sm text-center px-4">
             <span className="text-3xl mb-2 opacity-40">🔍</span>
-            No properties match the current filters
+            {activeTab === 'hot'
+              ? 'No recent sales in this area in the last 3 months'
+              : 'No properties match the current filters'}
           </div>
         ) : (
           items.map(prop => (
@@ -769,7 +847,7 @@ function Sidebar({ hotProperties, bargains, onViewOnMap, activeTab, onTabChange,
         )}
         {activeTab === 'hot' && hotProperties.length >= 20 && (
           <div className="text-center text-xs text-slate-400 py-2 shrink-0">
-            Showing top 20 by heat score
+            Showing most recent 20 sales
           </div>
         )}
       </div>
@@ -779,6 +857,8 @@ function Sidebar({ hotProperties, bargains, onViewOnMap, activeTab, onTabChange,
 
 // ── Map legend ────────────────────────────────────────────────────
 function MapLegend({ layerVisibility, onToggle }) {
+  const [expanded, setExpanded] = useState(true)
+
   const layers = [
     { key: 'heat',       label: 'Heat circles', dot: '#f97316' },
     { key: 'properties', label: 'Properties',   dot: '#3b82f6' },
@@ -793,26 +873,54 @@ function MapLegend({ layerVisibility, onToggle }) {
     { color: '#06b6d4', label: '<20 Cool' },
   ]
   return (
-    <div className="absolute bottom-5 left-4 z-[1000] bg-white border border-slate-200 rounded-2xl p-3.5 text-xs shadow-lg min-w-[164px]">
-      <div className="font-bold text-slate-600 mb-2.5 text-[10px] uppercase tracking-widest">Layers</div>
-      {layers.map(({ key, label, dot }) => (
-        <label key={key} className="flex items-center gap-2 mb-2 cursor-pointer group">
-          <input
-            type="checkbox" checked={layerVisibility[key]} onChange={() => onToggle(key)}
-            className="w-3.5 h-3.5 accent-blue-600 rounded"
-          />
-          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: layerVisibility[key] ? dot : '#cbd5e1' }} />
-          <span style={{ color: layerVisibility[key] ? '#374151' : '#9ca3af' }}>{label}</span>
-        </label>
-      ))}
-      <div className="border-t border-slate-100 mt-3 pt-3">
-        <div className="text-[9px] uppercase tracking-widest text-slate-400 mb-2">Heat Score</div>
-        {heatLevels.map(({ color, label }) => (
-          <div key={label} className="flex items-center gap-2 mb-1">
-            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
-            <span className="text-slate-500">{label}</span>
+    <div className="absolute bottom-5 left-4 z-[1000] bg-white border border-slate-200 rounded-2xl text-xs shadow-lg min-w-[164px] overflow-hidden">
+      {/* Header row — always visible */}
+      <div className="flex items-center justify-between px-3.5 py-2.5">
+        <span className="font-bold text-slate-600 text-[10px] uppercase tracking-widest">Layers</span>
+        <button
+          onClick={() => setExpanded(v => !v)}
+          title={expanded ? 'Minimise' : 'Expand'}
+          className="w-5 h-5 flex items-center justify-center rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors ml-2"
+        >
+          <svg
+            className="w-3.5 h-3.5 transition-transform duration-200"
+            style={{ transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)' }}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Collapsible body */}
+      <div
+        style={{
+          maxHeight: expanded ? '320px' : '0px',
+          transition: 'max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+          overflow: 'hidden',
+        }}
+      >
+        <div className="px-3.5 pb-3.5 border-t border-slate-100 pt-2.5">
+          {layers.map(({ key, label, dot }) => (
+            <label key={key} className="flex items-center gap-2 mb-2 cursor-pointer group">
+              <input
+                type="checkbox" checked={layerVisibility[key]} onChange={() => onToggle(key)}
+                className="w-3.5 h-3.5 accent-blue-600 rounded"
+              />
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: layerVisibility[key] ? dot : '#cbd5e1' }} />
+              <span style={{ color: layerVisibility[key] ? '#374151' : '#9ca3af' }}>{label}</span>
+            </label>
+          ))}
+          <div className="border-t border-slate-100 mt-3 pt-3">
+            <div className="text-[9px] uppercase tracking-widest text-slate-400 mb-2">Heat Score</div>
+            {heatLevels.map(({ color, label }) => (
+              <div key={label} className="flex items-center gap-2 mb-1">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
+                <span className="text-slate-500">{label}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   )
@@ -998,10 +1106,21 @@ export default function App() {
 
   const bargainIds = useMemo(() => new Set(bargains.map(p => p.id)), [bargains])
 
-  const hotProperties = useMemo(
-    () => [...filteredProperties].sort((a, b) => b.heatScore - a.heatScore).slice(0, 20),
-    [filteredProperties],
-  )
+  const hotProperties = useMemo(() => {
+    const cutoff = DATA_REF_MS - 90 * 86_400_000
+    return [...filteredProperties]
+      .filter(p => {
+        if (!p.dateSold) return false
+        const [y, m, d] = p.dateSold.split('-').map(Number)
+        return Date.UTC(y, m - 1, d) >= cutoff
+      })
+      .sort((a, b) => {
+        const [ay, am, ad] = a.dateSold.split('-').map(Number)
+        const [by, bm, bd] = b.dateSold.split('-').map(Number)
+        return Date.UTC(by, bm - 1, bd) - Date.UTC(ay, am - 1, ad)
+      })
+      .slice(0, 20)
+  }, [filteredProperties])
 
   const stats = useMemo(() => {
     const hotCount = filteredProperties.filter(p => p.heatScore >= 60).length
