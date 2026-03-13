@@ -266,7 +266,7 @@ function generateProperties() {
     const isLand   = propType === 'land'
     const isSold   = rand() > 0.38
     const dom      = isSold ? ri(1, 90) : null
-    const price    = round1k(rf(350_000, 2_500_000))
+    const price    = isSold ? round1k(rf(350_000, 1_500_000)) : round1k(rf(350_000, 2_500_000))
     const land     = isSold ? ri(50, 250)  : ri(300, 2500)
     const floor    = isLand ? 0 : isSold ? ri(60, 150) : ri(80, 380)
     const rawLat   = suburb.lat + (rand() - 0.5) * 0.028
@@ -284,7 +284,7 @@ function generateProperties() {
       floorSizeSqm: floor,
       propertyType: propType,
       estimatedValueNZD: price,
-      soldPriceNZD: isSold ? round1k(price * rf(0.87, 1.13)) : null,
+      soldPriceNZD: isSold ? round1k(price * rf(0.75, 1.00)) : null,
       dateSold:     isSold ? genSoldDate(ri(0, 89)) : null,
       daysOnMarket:   dom,
       pageViews:      ri(30, 5000),
