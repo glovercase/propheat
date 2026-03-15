@@ -431,14 +431,14 @@ function buildPopupHTML(prop) {
     ? `<tr><td style="color:#9ca3af">⏱</td><td style="color:${prop.daysOnMarket <= 10 ? '#ea580c' : '#374151'}">${prop.daysOnMarket} days on market</td></tr>`
     : ''
   return `
-    <div style="min-width:240px;font-family:'Inter',system-ui,sans-serif">
-      <div style="font-weight:700;font-size:14px;color:#111827;line-height:1.3;margin-bottom:2px">${prop.address}</div>
-      <div style="color:#9ca3af;font-size:11px;margin-bottom:10px">${prop.suburb} · ${prop.city} · ${prop.propertyType}</div>
+    <div style="min-width:240px;font-family:'DM Sans',system-ui,sans-serif">
+      <div style="font-weight:700;font-size:14px;color:#1A1A1A;line-height:1.3;margin-bottom:2px">${prop.address}</div>
+      <div style="color:#6B6B6B;font-size:11px;margin-bottom:10px">${prop.suburb} · ${prop.city} · ${prop.propertyType}</div>
       <div style="margin-bottom:12px;display:flex;align-items:baseline;gap:6px">
-        <span style="color:#1e40af;font-weight:700;font-size:18px">${priceStr}</span>
-        <span style="color:#9ca3af;font-size:11px">${priceTag}</span>
+        <span style="color:#2D7D6F;font-weight:700;font-size:18px">${priceStr}</span>
+        <span style="color:#6B6B6B;font-size:11px">${priceTag}</span>
       </div>
-      <table style="font-size:12px;color:#374151;border-collapse:collapse;width:100%;line-height:1.9">
+      <table style="font-size:12px;color:#1A1A1A;border-collapse:collapse;width:100%;line-height:1.9">
         ${bedRow}
         <tr>
           <td style="padding-right:10px;color:#9ca3af">📐</td>
@@ -463,13 +463,13 @@ function buildPopupHTML(prop) {
 
 function StatCard({ label, value, color, icon }) {
   return (
-    <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white border border-slate-200 shadow-sm min-w-[130px] shrink-0">
-      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base shrink-0" style={{ background: color + '15' }}>
+    <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white border border-[#E8E8E4] min-w-[130px] shrink-0" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div className="w-8 h-8 rounded-md flex items-center justify-center text-base shrink-0" style={{ background: color + '15' }}>
         {icon}
       </div>
       <div>
-        <div className="text-[10px] text-slate-400 uppercase tracking-wider leading-none mb-0.5">{label}</div>
-        <div className="text-sm font-bold text-slate-800 leading-none">{value}</div>
+        <div className="text-[10px] uppercase tracking-wider leading-none mb-0.5" style={{ color: '#6B6B6B' }}>{label}</div>
+        <div className="text-sm font-bold leading-none" style={{ color: '#1A1A1A' }}>{value}</div>
       </div>
     </div>
   )
@@ -483,16 +483,17 @@ function RegionSelector({ selected, onChange }) {
     { id: 'all-nz',           label: 'All NZ' },
   ]
   return (
-    <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 shrink-0">
+    <div className="flex items-center gap-1 rounded-md p-1 shrink-0" style={{ background: '#EDEDEA' }}>
       {options.map(opt => (
         <button
           key={opt.id}
           onClick={() => onChange(opt.id)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
+          className={`px-3 py-1.5 rounded-[5px] text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
             selected === opt.id
-              ? 'bg-white text-blue-700 shadow-sm border border-slate-200'
-              : 'text-slate-500 hover:text-slate-700'
+              ? 'bg-white shadow-sm border border-[#E8E8E4]'
+              : 'hover:text-[#1A1A1A]'
           }`}
+          style={{ color: selected === opt.id ? '#2D7D6F' : '#6B6B6B' }}
         >
           {opt.label}
         </button>
@@ -508,7 +509,7 @@ function RangeSlider({ label, min, max, value, step = 1, format, onChange, varia
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex justify-between items-center">
-        <span className="text-xs text-slate-500 font-medium">{label}</span>
+        <span className="text-xs font-medium" style={{ color: '#6B6B6B' }}>{label}</span>
         <span className="text-xs font-semibold" style={{ color: valColor }}>
           {format ? format(value) : value}
         </span>
@@ -542,38 +543,43 @@ function AreaMultiSelect({ selected, onChange, availableItems, placeholder = 'Al
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(v => !v)}
-        className="w-full text-left text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-slate-600 flex justify-between items-center hover:border-blue-400 hover:bg-blue-50/50 transition-all"
+        className="w-full text-left text-xs bg-white border border-[#E8E8E4] rounded-md px-2.5 py-2 flex justify-between items-center transition-all"
+          style={{ color: '#1A1A1A' }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = '#2D7D6F'; e.currentTarget.style.background = 'rgba(45,125,111,0.04)' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = '#E8E8E4'; e.currentTarget.style.background = '#fff' }}
       >
         <span>{label}</span>
         <svg
-          className="w-3 h-3 text-slate-400 transition-transform duration-200"
-          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          className="w-3 h-3 transition-transform duration-200"
+          style={{ color: '#6B6B6B', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
           fill="none" stroke="currentColor" viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {open && (
-        <div className="absolute top-full left-0 right-0 z-[2000] bg-white border border-slate-200 rounded-xl mt-1 shadow-xl overflow-hidden">
+        <div className="absolute top-full left-0 right-0 z-[2000] bg-white border border-[#E8E8E4] rounded-md mt-1 overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.10)' }}>
           <div className="max-h-44 overflow-y-auto p-1">
             {availableItems.map(name => (
               <label
                 key={name}
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer text-xs text-slate-700 transition-colors"
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded hover:bg-[#F8F8F6] cursor-pointer text-xs transition-colors" style={{ color: '#1A1A1A' }}
               >
                 <input
                   type="checkbox" checked={selected.includes(name)} onChange={() => toggle(name)}
-                  className="w-3.5 h-3.5 accent-blue-600 rounded"
+                  className="w-3.5 h-3.5 accent-[#2D7D6F] rounded"
                 />
                 {name}
               </label>
             ))}
           </div>
           {selected.length > 0 && (
-            <div className="border-t border-slate-100 p-1.5">
+            <div className="p-1.5" style={{ borderTop: '1px solid #E8E8E4' }}>
               <button
                 onClick={() => onChange([])}
-                className="w-full text-xs text-slate-400 hover:text-slate-600 py-1 transition-colors"
+                className="w-full text-xs py-1 transition-colors" style={{ color: '#6B6B6B' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#1A1A1A'}
+                onMouseLeave={e => e.currentTarget.style.color = '#6B6B6B'}
               >
                 Clear all
               </button>
@@ -595,25 +601,26 @@ function FilterSidebar({ filters, onChange, open, onToggle, availableCities, ava
       style={{
         width: open ? '272px' : '48px',
         transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        boxShadow: '2px 0 12px rgba(0,0,0,0.06)',
-        borderRight: '1px solid #e2e8f0',
+        borderRight: '1px solid #E8E8E4',
         overflow: 'hidden',
       }}
     >
       {/* Burger row */}
-      <div className="h-12 flex items-center gap-2.5 px-3 border-b border-slate-100 shrink-0">
+      <div className="h-12 flex items-center gap-2.5 px-3 shrink-0" style={{ borderBottom: '1px solid #E8E8E4' }}>
         <button
           onClick={onToggle}
           title={open ? 'Collapse filters' : 'Expand filters'}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0"
+          className="w-8 h-8 flex items-center justify-center rounded-md transition-colors shrink-0" style={{ color: '#6B6B6B' }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#F8F8F6'; e.currentTarget.style.color = '#1A1A1A' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6B6B6B' }}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
         <span
-          className="font-semibold text-slate-700 text-sm whitespace-nowrap"
-          style={{ opacity: open ? 1 : 0, transition: 'opacity 0.15s ease', pointerEvents: open ? 'auto' : 'none' }}
+          className="font-semibold text-sm whitespace-nowrap"
+          style={{ color: '#1A1A1A', opacity: open ? 1 : 0, transition: 'opacity 0.15s ease', pointerEvents: open ? 'auto' : 'none' }}
         >
           Filters
         </span>
@@ -653,7 +660,7 @@ function FilterSidebar({ filters, onChange, open, onToggle, availableCities, ava
               {/* City filter — hidden when only one city available */}
               {availableCities.length > 1 && (
                 <div>
-                  <div className="text-xs text-slate-500 font-medium mb-1.5">City</div>
+                  <div className="text-xs font-medium mb-1.5" style={{ color: '#6B6B6B' }}>City</div>
                   <AreaMultiSelect
                     selected={filters.selectedCities}
                     onChange={val => { onChange('selectedCities', val); onChange('selectedSuburbs', []) }}
@@ -664,7 +671,7 @@ function FilterSidebar({ filters, onChange, open, onToggle, availableCities, ava
               )}
 
               <div>
-                <div className="text-xs text-slate-500 font-medium mb-1.5">Suburb</div>
+                <div className="text-xs font-medium mb-1.5" style={{ color: '#6B6B6B' }}>Suburb</div>
                 <AreaMultiSelect
                   selected={filters.selectedSuburbs}
                   onChange={set('selectedSuburbs')}
@@ -675,7 +682,7 @@ function FilterSidebar({ filters, onChange, open, onToggle, availableCities, ava
             </div>
           </div>
 
-          <div className="border-t border-slate-100 mb-6" />
+          <div className="mb-6" style={{ borderTop: '1px solid #E8E8E4' }} />
 
           {/* ── Bargain Filters ── */}
           <div>
@@ -694,10 +701,10 @@ function FilterSidebar({ filters, onChange, open, onToggle, availableCities, ava
                 format={v => `${v.toLocaleString()}m²`} onChange={set('minLandSize')} variant="bargain"
               />
               <div>
-                <div className="text-xs text-slate-500 font-medium mb-2">Property type</div>
+                <div className="text-xs font-medium mb-2" style={{ color: '#6B6B6B' }}>Property type</div>
                 <div className="flex flex-col gap-1.5">
                   {PROP_TYPES.map(t => (
-                    <label key={t} className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer hover:text-slate-800 transition-colors">
+                    <label key={t} className="flex items-center gap-2 text-xs cursor-pointer transition-colors" style={{ color: '#6B6B6B' }}>
                       <input
                         type="checkbox"
                         checked={filters.selectedPropTypes.includes(t)}
@@ -707,7 +714,7 @@ function FilterSidebar({ filters, onChange, open, onToggle, availableCities, ava
                             : [...filters.selectedPropTypes, t]
                           onChange('selectedPropTypes', next)
                         }}
-                        className="w-3.5 h-3.5 accent-emerald-600 rounded"
+                        className="w-3.5 h-3.5 accent-[#16a34a] rounded"
                       />
                       {t}
                     </label>
@@ -756,15 +763,15 @@ function PropertyCard({ prop, onViewOnMap, isBargain }) {
   const displayBeds  = prop.bedrooms  || bedsFromPrice(price, prop.region)
   const displayBaths = prop.bathrooms || (displayBeds <= 2 ? 1 : 2)
   return (
-    <div className="bg-white rounded-xl p-3.5 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 shadow-sm">
+    <div className="bg-white rounded-lg p-3.5 border border-[#E8E8E4] transition-all duration-200" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }} onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(45,125,111,0.35)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = '#E8E8E4'; e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)' }}>
       <div className="flex justify-between items-start gap-2 mb-1.5">
         <div className="min-w-0">
-          <div className="text-sm font-semibold text-slate-800 truncate">{prop.address}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">{prop.suburb} · {prop.city} · {prop.propertyType}</div>
+          <div className="text-sm font-semibold truncate" style={{ color: '#1A1A1A' }}>{prop.address}</div>
+          <div className="text-[11px] mt-0.5" style={{ color: '#6B6B6B' }}>{prop.suburb} · {prop.city} · {prop.propertyType}</div>
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
           {prop.developer && (
-            <span className="text-[10px] text-slate-400 whitespace-nowrap">{prop.developer}</span>
+            <span className="text-[10px] whitespace-nowrap" style={{ color: '#6B6B6B' }}>{prop.developer}</span>
           )}
           {isBargain && (
             <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">
@@ -774,10 +781,10 @@ function PropertyCard({ prop, onViewOnMap, isBargain }) {
         </div>
       </div>
       <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 mb-2.5">
-        <span className="font-bold text-blue-700 text-base">{fmtNZD(price)}</span>
-        <span className="text-[10px] text-slate-400 font-medium">{priceLabel}</span>
+        <span className="font-bold text-base" style={{ color: '#2D7D6F' }}>{fmtNZD(price)}</span>
+        <span className="text-[10px] font-medium" style={{ color: '#6B6B6B' }}>{priceLabel}</span>
         {prop.soldPriceNZD && prop.dateSold && (
-          <span className="text-[10px] text-slate-400">· Sold {fmtDate(prop.dateSold)}</span>
+          <span className="text-[10px]" style={{ color: '#6B6B6B' }}>· Sold {fmtDate(prop.dateSold)}</span>
         )}
         {prop.dateSold && (
           <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-100">
@@ -788,22 +795,22 @@ function PropertyCard({ prop, onViewOnMap, isBargain }) {
 
       {/* Bargain pricing detail row */}
       {isBargain && (
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-slate-400 mb-2.5 -mt-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] mb-2.5 -mt-1" style={{ color: '#6B6B6B' }}>
           {prop.rvNZD && (
-            <span>RV <span className="font-semibold text-slate-600">{fmtNZD(prop.rvNZD)}</span></span>
+            <span>RV <span className="font-semibold" style={{ color: '#1A1A1A' }}>{fmtNZD(prop.rvNZD)}</span></span>
           )}
-          {prop.rvNZD && <span className="text-slate-200">·</span>}
-          <span>Est. <span className="font-semibold text-slate-600">{fmtNZD(prop.estimatedValueNZD)}</span></span>
+          {prop.rvNZD && <span style={{ color: '#D0D0CC' }}>·</span>}
+          <span>Est. <span className="font-semibold" style={{ color: '#1A1A1A' }}>{fmtNZD(prop.estimatedValueNZD)}</span></span>
           {prop.lastSoldPriceNZD && (
             <>
-              <span className="text-slate-200">·</span>
-              <span>Last Sold ({prop.lastSoldYear}) <span className="font-semibold text-slate-600">{fmtNZD(prop.lastSoldPriceNZD)}</span></span>
+              <span style={{ color: '#D0D0CC' }}>·</span>
+              <span>Last Sold ({prop.lastSoldYear}) <span className="font-semibold" style={{ color: '#1A1A1A' }}>{fmtNZD(prop.lastSoldPriceNZD)}</span></span>
             </>
           )}
         </div>
       )}
-      <div className="flex flex-wrap gap-x-2.5 gap-y-1 text-[11px] text-slate-500 mb-3">
-        <span className="flex items-center gap-1 font-semibold text-slate-700">
+      <div className="flex flex-wrap gap-x-2.5 gap-y-1 text-[11px] mb-3" style={{ color: '#6B6B6B' }}>
+        <span className="flex items-center gap-1 font-semibold" style={{ color: '#1A1A1A' }}>
           {displayBeds} bed · {displayBaths} bath
         </span>
         <span className="flex items-center gap-1">
@@ -827,7 +834,10 @@ function PropertyCard({ prop, onViewOnMap, isBargain }) {
         <HeatBadge score={prop.heatScore} />
         <button
           onClick={() => onViewOnMap(prop)}
-          className="text-[11px] font-medium text-blue-600 border border-blue-200 hover:bg-blue-600 hover:text-white hover:border-blue-600 px-2.5 py-1 rounded-full transition-all duration-150 shrink-0"
+          className="text-[11px] font-medium px-2.5 py-1 rounded-[6px] transition-all duration-150 shrink-0"
+          style={{ color: '#2D7D6F', border: '1px solid rgba(45,125,111,0.3)' }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#1A1A1A'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#1A1A1A' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#2D7D6F'; e.currentTarget.style.borderColor = 'rgba(45,125,111,0.3)' }}
         >
           View on map →
         </button>
@@ -845,7 +855,7 @@ function Sidebar({ hotProperties, bargains, onViewOnMap, activeTab, onTabChange,
   ]
   return (
     <div className="flex flex-col h-full bg-white">
-      <div className="flex shrink-0 border-b border-slate-100">
+      <div className="flex shrink-0" style={{ borderBottom: '1px solid #E8E8E4' }}>
         {tabs.map(tab => (
           <button
             key={tab.id}
@@ -863,16 +873,16 @@ function Sidebar({ hotProperties, bargains, onViewOnMap, activeTab, onTabChange,
         ))}
       </div>
       {activeTab === 'hot' && (
-        <div className="flex items-center gap-1.5 px-3 py-2 border-b border-slate-100 bg-orange-50/60 shrink-0">
-          <span className="text-[10px] text-slate-400 font-medium">🔥 Hot Property Score</span>
+        <div className="flex items-center gap-1.5 px-3 py-2 shrink-0" style={{ borderBottom: '1px solid #E8E8E4', background: '#FFFBF7' }}>
+          <span className="text-[10px] font-medium" style={{ color: '#6B6B6B' }}>🔥 Hot Property Score</span>
           <span className="text-[10px] font-bold text-orange-600 bg-orange-100 border border-orange-200 px-1.5 py-0.5 rounded-full">
             {minHeatScore}+
           </span>
         </div>
       )}
-      <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 bg-slate-50/60">
+      <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2" style={{ background: '#F8F8F6' }}>
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-36 text-slate-400 text-sm text-center px-4">
+          <div className="flex flex-col items-center justify-center h-36 text-sm text-center px-4" style={{ color: '#6B6B6B' }}>
             <span className="text-3xl mb-2 opacity-40">🔍</span>
             {activeTab === 'hot'
               ? `No properties match a heat score of ${minHeatScore}+, try lowering the threshold`
@@ -889,7 +899,7 @@ function Sidebar({ hotProperties, bargains, onViewOnMap, activeTab, onTabChange,
           ))
         )}
         {activeTab === 'hot' && hotProperties.length >= 20 && (
-          <div className="text-center text-xs text-slate-400 py-2 shrink-0">
+          <div className="text-center text-xs py-2 shrink-0" style={{ color: '#6B6B6B' }}>
             Showing most recent 20 sales
           </div>
         )}
@@ -916,14 +926,16 @@ function MapLegend({ layerVisibility, onToggle }) {
     { color: '#06b6d4', label: '<20 Cool' },
   ]
   return (
-    <div className="absolute bottom-5 left-4 z-[1000] bg-white border border-slate-200 rounded-2xl text-xs shadow-lg min-w-[164px] overflow-hidden">
+    <div className="absolute bottom-5 left-4 z-[1000] bg-white rounded-lg text-xs min-w-[164px] overflow-hidden" style={{ border: '1px solid #E8E8E4', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
       {/* Header row — always visible */}
       <div className="flex items-center justify-between px-3.5 py-2.5">
-        <span className="font-bold text-slate-600 text-[10px] uppercase tracking-widest">Layers</span>
+        <span className="font-bold text-[10px] uppercase tracking-widest" style={{ color: '#6B6B6B' }}>Layers</span>
         <button
           onClick={() => setExpanded(v => !v)}
           title={expanded ? 'Minimise' : 'Expand'}
-          className="w-5 h-5 flex items-center justify-center rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors ml-2"
+          className="w-5 h-5 flex items-center justify-center rounded transition-colors ml-2" style={{ color: '#6B6B6B' }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#1A1A1A'; e.currentTarget.style.background = '#F8F8F6' }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#6B6B6B'; e.currentTarget.style.background = 'transparent' }}
         >
           <svg
             className="w-3.5 h-3.5 transition-transform duration-200"
@@ -943,23 +955,23 @@ function MapLegend({ layerVisibility, onToggle }) {
           overflow: 'hidden',
         }}
       >
-        <div className="px-3.5 pb-3.5 border-t border-slate-100 pt-2.5">
+        <div className="px-3.5 pb-3.5 pt-2.5" style={{ borderTop: '1px solid #E8E8E4' }}>
           {layers.map(({ key, label, dot }) => (
             <label key={key} className="flex items-center gap-2 mb-2 cursor-pointer group">
               <input
                 type="checkbox" checked={layerVisibility[key]} onChange={() => onToggle(key)}
-                className="w-3.5 h-3.5 accent-blue-600 rounded"
+                className="w-3.5 h-3.5 accent-[#2D7D6F] rounded"
               />
               <span className="w-2 h-2 rounded-full shrink-0" style={{ background: layerVisibility[key] ? dot : '#cbd5e1' }} />
-              <span style={{ color: layerVisibility[key] ? '#374151' : '#9ca3af' }}>{label}</span>
+              <span style={{ color: layerVisibility[key] ? '#1A1A1A' : '#6B6B6B' }}>{label}</span>
             </label>
           ))}
-          <div className="border-t border-slate-100 mt-3 pt-3">
-            <div className="text-[9px] uppercase tracking-widest text-slate-400 mb-2">Heat Score</div>
+          <div className="mt-3 pt-3" style={{ borderTop: '1px solid #E8E8E4' }}>
+            <div className="text-[9px] uppercase tracking-widest mb-2" style={{ color: '#6B6B6B' }}>Heat Score</div>
             {heatLevels.map(({ color, label }) => (
               <div key={label} className="flex items-center gap-2 mb-1">
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
-                <span className="text-slate-500">{label}</span>
+                <span style={{ color: '#6B6B6B' }}>{label}</span>
               </div>
             ))}
           </div>
@@ -988,8 +1000,10 @@ function FeedbackButton() {
       {/* Floating pill button */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-[1100] flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-100 transition-all duration-200"
-        style={{ background: 'linear-gradient(135deg, #1e40af 0%, #4f46e5 100%)' }}
+        className="fixed bottom-5 right-5 z-[1100] flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold text-white transition-all duration-200"
+        style={{ background: '#1A1A1A', boxShadow: '0 2px 12px rgba(0,0,0,0.18)' }}
+        onMouseEnter={e => { e.currentTarget.style.background = '#2D7D6F'; e.currentTarget.style.transform = 'scale(1.03)' }}
+        onMouseLeave={e => { e.currentTarget.style.background = '#1A1A1A'; e.currentTarget.style.transform = 'scale(1)' }}
       >
         Give Feedback 💬
       </button>
@@ -1002,26 +1016,26 @@ function FeedbackButton() {
           onClick={e => { if (e.target === e.currentTarget) setOpen(false) }}
         >
           {/* Modal panel */}
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden border border-slate-200"
-            style={{ maxHeight: '90vh' }}
-          >
+          <div className="bg-white rounded-lg w-full max-w-lg flex flex-col overflow-hidden" style={{ border: '1px solid #E8E8E4', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', maxHeight: '90vh' }}>
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
+            <div className="flex items-center justify-between px-5 py-4 shrink-0" style={{ borderBottom: '1px solid #E8E8E4' }}>
               <div className="flex items-center gap-2.5">
                 <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-sm text-white shrink-0"
-                  style={{ background: 'linear-gradient(135deg, #1e40af 0%, #4f46e5 100%)' }}
+                  className="w-7 h-7 rounded-md flex items-center justify-center text-sm text-white shrink-0"
+                  style={{ background: '#2D7D6F' }}
                 >
                   💬
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-slate-800 leading-none">Share your feedback</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">Help us improve PropHeat NZ</div>
+                  <div className="text-sm font-bold leading-none" style={{ color: '#1A1A1A' }}>Share your feedback</div>
+                  <div className="text-[10px] mt-0.5" style={{ color: '#6B6B6B' }}>Help us improve PropHeat NZ</div>
                 </div>
               </div>
               <button
                 onClick={() => setOpen(false)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded-md transition-colors" style={{ color: '#6B6B6B' }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#1A1A1A'; e.currentTarget.style.background = '#F8F8F6' }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#6B6B6B'; e.currentTarget.style.background = 'transparent' }}
                 aria-label="Close"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1283,22 +1297,22 @@ export default function App() {
   // ════════════════════════════════════════════════════════════════
 
   return (
-    <div className="h-screen flex flex-col bg-slate-50 overflow-hidden">
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: '#F8F8F6' }}>
 
       {/* ── Top navbar ─────────────────────────────────────────── */}
-      <header className="shrink-0 flex items-center justify-between gap-4 px-5 py-2.5 bg-white border-b border-slate-200 shadow-sm">
+      <header className="shrink-0 flex items-center justify-between gap-4 px-5 py-2.5 bg-white" style={{ borderBottom: '1px solid #E8E8E4' }}>
 
         {/* Logo */}
         <div className="flex items-center gap-3 shrink-0">
           <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 text-white"
-            style={{ background: 'linear-gradient(135deg, #1e40af 0%, #4f46e5 100%)' }}
+            className="w-9 h-9 rounded-md flex items-center justify-center text-lg shrink-0 text-white"
+            style={{ background: '#1A1A1A' }}
           >
             🔥
           </div>
           <div>
-            <h1 className="text-sm font-bold text-slate-800 leading-none tracking-tight">PropHeat NZ</h1>
-            <p className="text-[10px] text-slate-400 leading-none mt-0.5 uppercase tracking-widest">
+            <h1 className="text-sm font-bold leading-none tracking-tight" style={{ fontFamily: "'DM Serif Display', serif", color: '#1A1A1A', fontSize: '16px' }}>PropHeat NZ</h1>
+            <p className="text-[10px] leading-none mt-0.5 uppercase tracking-widest" style={{ color: '#6B6B6B' }}>
               Property Market Intelligence · NZ
             </p>
           </div>
@@ -1335,7 +1349,7 @@ export default function App() {
         </div>
 
         {/* Right property list sidebar */}
-        <div className="w-[360px] shrink-0 flex flex-col border-l border-slate-200 min-h-0 shadow-[-2px_0_12px_rgba(0,0,0,0.04)]">
+        <div className="w-[360px] shrink-0 flex flex-col min-h-0" style={{ borderLeft: '1px solid #E8E8E4' }}>
           <Sidebar
             hotProperties={hotProperties}
             bargains={bargains}
